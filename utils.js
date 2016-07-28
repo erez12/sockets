@@ -1,7 +1,8 @@
 "use strict"
 
 let not = (fn) => function() { return !fn.apply(this, arguments); }; // EREZ - arguments not supported in lambda...
-
+let s4 = () => Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+let guid = () => [s4() + s4(), s4(), s4(), s4(), s4() + s4() + s4()].join('-');
 
 module.exports.initQOS = function initQOS(QOSsocket, messageName, messageContent) {
    socket._messages = {};
@@ -48,3 +49,28 @@ module.exports.monitorSentMessages = function monitorSentMessages(QOSsocket, res
 
    // TODO - overdueMessages what to do ?
 };
+function sendMessage(socket, message){
+   new Promise((resolve, reject) => {
+      if (!socket || !message || !message.topic) {
+         reject(new Error('invalid argument'));
+         return;
+      }
+
+      // TODO - allow mutation for large objects
+      // TODO - check what about resend
+
+      var messageColne = JSON.parse(JSON.stringify(message));
+      messageColne.__meta.id = guid();
+
+      socket.emit(messageName, messageContent, function(messageIndex){
+         console.log('got message ' + messageId);
+
+      });
+
+      // 2. Add message meta
+      // 3. Try sending
+   });
+
+}
+
+module.exports.QOSMessage = (socket) => (message) => sendMessage(socket, message);

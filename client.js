@@ -1,31 +1,30 @@
-//client.js
-var io = require('socket.io-client');
-var socket = io.connect('http://127.0.0.1:8086', {
+"use strict"
+
+const io = require('socket.io-client');
+const QOSMessage = require('socket.io-client');
+let socket = io.connect('http://127.0.0.1:8086', {
       reconnect: true,
       transport: ['websocket'],
       pingTimeout: 100  * 1000,
       pingInterval: 40 * 1000
 });
-socket._messages = {};
-socket._messageCount = 0;
-
-function
-function sendMessageToServer(socket, name, content){
-   socket._messages[socket._messageCount] = {
-      content: content,
-      sent: Date.now(),
 
 
-   socket.emit(name, content, function(messageIndex){
-      console.log('got message ' + messageIndex);
-   });
+let sendMessageToServer = (socket, topic, content) => QOSMessage(socket)({topic: topic, content: content})
+      .then()
+      .catch(callback)
+
+
 }
 
 socket.on('connect', function(){
     console.log('Connected to server !');
     setTimeout(() => {
-      sendMessageToServer(socket, 'client_message', )
-   })
+      console.log('Sending message');
+      sendMessageToServer(socket, 'client_message', {data: 123})
+         .then(console.log)
+         .catch(console.error);
+   }, 1000 * 5)
 });
 
 socket.on('server_message', function(message, ackFunction) {
