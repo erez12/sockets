@@ -49,6 +49,13 @@ module.exports.monitorSentMessages = function monitorSentMessages(QOSsocket, res
 
    // TODO - overdueMessages what to do ?
 };
+let createMessageMeta = () => {
+    return {
+        id: guid(),
+        resendCounter: -1
+        resolved: false
+    };
+};
 function sendMessage(socket, message){
    new Promise((resolve, reject) => {
       if (!socket || !message || !message.topic) {
@@ -56,12 +63,11 @@ function sendMessage(socket, message){
          return;
       }
 
-      // TODO - allow mutation for large objects
-      // TODO - check what about resend
+      message.__meta = messageColne.__meta || createMessageMeta();
+      if (message.resolved) {
 
-      var messageColne = JSON.parse(JSON.stringify(message));
-      messageColne.__meta.id = guid();
-
+      }
+      messageColne.__meta.resendCounter++;
       socket.emit(messageName, messageContent, function(messageIndex){
          console.log('got message ' + messageId);
 
