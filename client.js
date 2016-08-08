@@ -1,44 +1,77 @@
 "use strict"
 
 const io = require('socket.io-client');
-let socket = io.connect('http://127.0.0.1:8086', {
-      transport: ['websocket'],
-      pingTimeout: 100  * 1000,
-      pingInterval: 40 * 1000
-});
-socket.io.timeout(1000)
+
 
 // let sendMessageToServer = (socket, topic, content) => QOSMessage(socket)({topic: topic, content: content})
 //       .then()
 //       .catch(callback)
 // }
+let messageCounter = 1;
+let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
-socket.on('connect', function(){
-    console.log('Connected to server !');
-   //  setTimeout(() => {
-   //    console.log('Sending message');
-   //    sendMessageToServer(socket, 'client_message', {data: 123})
-   //       .then(console.log)
-   //       .catch(console.error);
-   // }, 1000 * 5)
-});
+function onFirstConnect(socket) {
+   setInterval(() => {
+     console.log('Sending message', messageCounter);
+     sendMessage(socket, 'client_message', {messageCounter: messageCounter++}, (msgCount) => {
+        console.log("got ACK for message " + msgCount);
+     });
+  }, 1000 * 1);
+}
 
-socket.on('server_message', function(message, ackFunction) {
-   ackFunction(message.counter);
-});
+var SEC = 1000;
+var MIN = 60 * SEC;
 
-// Connection errors:
-socket.on('disconnect', function(){
-    console.log('disconnected!');
-});
+function createSocket(){
+   let socket = io('http://127.0.0.1:8086', {
+      forceNew: true,
+      reconnectionAttempts: 5,
+      timeout: SEC,
+      pingTimeout: 20 * SEC,
+      pingInterval: 5 * SEC
+   });
+   // {
+   //       transport: ['websocket'],
+   //       pingTimeout: 100  * 1000,
+   //       pingInterval: 40 * 1000,
+   //       reconnectionAttempts: 100
+   // }
+   socket.__meta = {
+      reconnectCounter: 0,
+      reconnectionAttempts: 0
+   };
+   socket.on('connect', function(){
+      if (socket.__meta.reconnectCounter > 0){
+         console.log('after-reconnect');
+         return
+      }
 
-socket.on('reconnect', function(){
-    console.log('reconnect');
-});
+      console.log('connect');
+      onFirstConnect(socket);
+   });
 
-socket.on('reconnecting', function(i){
-    console.log('reconnecting', i);
-});
-socket.on('reconnect_failed', function(i){
-    console.log('reconnect_failed');
-});
+   socket.on('server_message', function(message, ackFunction) {
+      ackFunction && ackFunction(message.counter);
+   });
+
+   // Connection errors:
+   socket.on('disconnect', function(){
+       console.log('disconnect', socket.__meta);
+   });
+
+   socket.on('reconnect', function(){
+      socket.__meta.reconnectCounter++
+      console.log('reconnect', socket.__meta);
+   });
+
+   socket.on('reconnecting', function(i){
+      socket.__meta.reconnectionAttempts = i;
+      console.log('reconnecting', i);
+   });
+   socket.on('reconnect_failed', function(i){
+       console.log('reconnect_failed', socket.__meta);
+   });
+
+   return
+}
+createSocket();
