@@ -4,10 +4,9 @@ var MIN = 60 * SEC;
 console.log('Server running on port ' + process.env.PORT);
 var io = require('socket.io')(process.env.PORT || 8086, {
       serveClient: false,
-      pingTimeout: 10 * MIN,
+      pingTimeout: 20 * SEC,
       transport: ['websocket']
 });
-console.log(io)
 var messageToClients = (function (){
    var _notifyFunction = null;
    return {
@@ -42,5 +41,7 @@ io.on('connection', function (socket) {
 
 var messageCounter = 1;
 setInterval(() => {
+
+   return;
    messageToClients.send('server_message', {messageCounter: messageCounter++});
 }, 5 * SEC);

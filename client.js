@@ -3,13 +3,12 @@
 const SEC = 1000;
 const MIN = 60 * SEC;
 const io = require('socket.io-client');
-const serverUrl = 'http://socket-server-2.herokuapp.com:23566';//'http://127.0.0.1:8086'
+const serverUrl = 'http://127.0.0.1:8086'
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
 function onFirstConnect(socket) {
    setInterval(() => {
-      return;
      console.log('Sending message', messageCounter);
      sendMessage(socket, 'client_message', {messageCounter: messageCounter++}, (msgCount) => {
         console.log("got ACK for message " + msgCount);
@@ -21,6 +20,8 @@ function createSocket(){
    let socket = io(serverUrl, {
       forceNew: true,
       reconnectionAttempts: 5,
+      // reconnection: false,
+      // reconnectionAttempts: 0
       transport: ['websocket']
    });
 
