@@ -1,7 +1,7 @@
 var SEC = 1000;
 var MIN = 60 * SEC;
 
-var io = require('socket.io')(8086, {
+var io = require('socket.io')(process.env.PORT || 8086, {
       serveClient: false,
       pingTimeout: 10 * MIN,
       transport: ['websocket']
