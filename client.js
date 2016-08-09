@@ -9,14 +9,16 @@ let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, a
 
 function onFirstConnect(socket) {
    setInterval(() => {
-     console.log('Sending message', messageCounter);
-     sendMessage(socket, 'client_message', {messageCounter: messageCounter++}, (msgCount) => {
+     console.log('Sending message ' + messageCounter);
+     sendMessage(socket, 'client_message', {clientID: socket.__meta.clientID, messageCounter: messageCounter++}, (msgCount) => {
         console.log("got ACK for message " + msgCount);
      });
-  }, 5 * SEC);
+  }, 1 * SEC);
 }
 
-function createSocket(){
+var serverMessageCount = [];
+setInterval(() => { console.log(JSON.stringify(serverMessageCount)); }, 1000 * 10);
+function createSocket(clientID){
    let socket = io(serverUrl, {
       forceNew: true,
       reconnectionAttempts: 5,
@@ -27,21 +29,25 @@ function createSocket(){
 
    socket.__meta = {
       reconnectCounter: 0,
-      reconnectionAttempts: 0
+      reconnectionAttempts: 0,
+      clientID: clientID
    };
    socket.on('connect', function(){
+      socket.__me
       if (socket.__meta.reconnectCounter > 0){
          console.log('after-reconnect');
          return
       }
 
       console.log('connect');
-      onFirstConnect(socket);
+      sendMessage(socket, "register", {clientID: clientID}, function(){
+         onFirstConnect(socket);
+      });
    });
 
    socket.on('server_message', function(message, ackFunction) {
-      console.log('got message no.', message.messageCounter);
-      ackFunction && ackFunction(message.counter);
+      serverMessageCount.push(message.messageCounter)
+      ackFunction && ackFunction(message.messageCounter);
    });
 
    // Connection errors:
@@ -64,4 +70,5 @@ function createSocket(){
 
    return
 }
-createSocket();
+console.log('starting ' + process.env.CLIENT_ID);
+createSocket(process.env.CLIENT_ID);
