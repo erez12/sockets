@@ -7,7 +7,7 @@ var io = require('socket.io')(process.env.PORT || 8086, {
       pingTimeout: 10 * MIN,
       transport: ['websocket']
 });
-
+console.log(io)
 var messageToClients = (function (){
    var _notifyFunction = null;
    return {

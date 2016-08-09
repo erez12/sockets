@@ -3,7 +3,7 @@
 const SEC = 1000;
 const MIN = 60 * SEC;
 const io = require('socket.io-client');
-const serverUrl = 'http://socket-server-2.herokuapp.com/';//'http://127.0.0.1:8086'
+const serverUrl = 'http://socket-server-2.herokuapp.com:23566';//'http://127.0.0.1:8086'
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
