@@ -1,6 +1,7 @@
 var SEC = 1000;
 var MIN = 60 * SEC;
 
+console.log('Server running on port ' + process.env.PORT);
 var io = require('socket.io')(process.env.PORT || 8086, {
       serveClient: false,
       pingTimeout: 10 * MIN,
