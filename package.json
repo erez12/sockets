@@ -1,7 +1,13 @@
 {
   "name": "serverchik",
   "version": "0.0.1",
-
+  "author": "",
+  "license": "ISC",
+  "main": "app.js",
+  "scripts": {
+     "test": "echo \"Error: no test specified\" && exit 1",
+     "start": "node app.js"
+  },
   "dependencies": {
     "socket.io" : "1.4.6",
     "socket.io-client" : "1.4.6"

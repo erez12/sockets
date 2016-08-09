@@ -1,41 +1,29 @@
 "use strict"
 
+const SEC = 1000;
+const MIN = 60 * SEC;
 const io = require('socket.io-client');
 
-
-// let sendMessageToServer = (socket, topic, content) => QOSMessage(socket)({topic: topic, content: content})
-//       .then()
-//       .catch(callback)
-// }
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
 function onFirstConnect(socket) {
    setInterval(() => {
+      return;
      console.log('Sending message', messageCounter);
      sendMessage(socket, 'client_message', {messageCounter: messageCounter++}, (msgCount) => {
         console.log("got ACK for message " + msgCount);
      });
-  }, 1000 * 1);
+  }, 5 * SEC);
 }
-
-var SEC = 1000;
-var MIN = 60 * SEC;
 
 function createSocket(){
    let socket = io('http://127.0.0.1:8086', {
       forceNew: true,
       reconnectionAttempts: 5,
-      timeout: SEC,
-      pingTimeout: 20 * SEC,
-      pingInterval: 5 * SEC
+      transport: ['websocket']
    });
-   // {
-   //       transport: ['websocket'],
-   //       pingTimeout: 100  * 1000,
-   //       pingInterval: 40 * 1000,
-   //       reconnectionAttempts: 100
-   // }
+
    socket.__meta = {
       reconnectCounter: 0,
       reconnectionAttempts: 0
@@ -51,6 +39,7 @@ function createSocket(){
    });
 
    socket.on('server_message', function(message, ackFunction) {
+      console.log('got message no.', message.messageCounter);
       ackFunction && ackFunction(message.counter);
    });
 

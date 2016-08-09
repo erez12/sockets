@@ -1,25 +1,26 @@
 var SEC = 1000;
 var MIN = 60 * SEC;
 
-var io = require('socket.io')({
+var io = require('socket.io')(8086, {
       serveClient: false,
-      pingTimeout: 20 * SEC,
-      pingInterval: 5 * SEC
+      pingTimeout: 10 * MIN,
+      transport: ['websocket']
 });
-//    {
-//    serveClient: false,
-//    transport: ['websocket'],
-//    pingTimeout: 100  * 1000,
-//    pingInterval: 40 * 1000
-// });
 
-io.listen(8086);
-function sendMessageToClient(socket, name, content){
-   socket.emit(name, content, function(messageIndex){
-      console.log('got message ' + messageIndex);
-   });
-}
+var messageToClients = (function (){
+   var _notifyFunction = null;
+   return {
+      send: (msgName, msg) => {
+         if (!_notifyFunction) {
+            return;
 
+         }
+         console.log('sending message ' + msg.messageCounter);
+         _notifyFunction(msgName, msg);
+      },
+      setNotifyFunction: (func) => { _notifyFunction = func; }
+   };
+}());
 io.on('connection', function (socket) {
     console.log('connection');
 
@@ -32,12 +33,13 @@ io.on('connection', function (socket) {
         console.log('disconected');
     });
 
-   //  setTimeout(() => {
-   //    try {
-   //       console.log('try disconnect');
-   //       socket.disconnect(true);
-   //    }catch(e) {
-   //       console.log(e.message);
-   //    }
-   // }, 1000 * 3);
+    messageToClients.setNotifyFunction(function(msgName, msg) {
+       socket.broadcast.emit(msgName, msg); // everyone else
+       socket.emit(msgName, msg); // current socket
+    });
 });
+
+var messageCounter = 1;
+setInterval(() => {
+   messageToClients.send('server_message', {messageCounter: messageCounter++});
+}, 5 * SEC);
