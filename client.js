@@ -1,9 +1,10 @@
 "use strict"
 
+require('console-stamp')(console, '[HH:MM:ss.l]');
 const SEC = 1000;
 const MIN = 60 * SEC;
 const io = require('socket.io-client');
-const serverUrl = 'http://127.0.0.1:8086'
+const serverUrl = 'http://127.0.0.1:8080'
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
@@ -24,7 +25,7 @@ function createSocket(clientID){
       reconnectionAttempts: 5,
       // reconnection: false,
       // reconnectionAttempts: 0
-      transport: ['websocket']
+      transports: ['websocket']
    });
 
    socket.__meta = {

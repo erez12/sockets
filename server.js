@@ -1,13 +1,25 @@
-var SEC = 1000;
-var MIN = 60 * SEC;
+"use strict"
 
-console.log('Server running on port ' + process.env.PORT);
-var io = require('socket.io')(process.env.PORT || 8086, {
-      serveClient: false,
-      pingTimeout: 20 * SEC,
-      transport: ['websocket']
+require('console-stamp')(console, '[HH:MM:ss.l]');
+const SEC = 1000;
+const MIN = 60 * SEC;
+
+
+console.log('Server running on port ');
+var httpServ = require('http').createServer((req, res) => {
+   res.end("What are you doing here ? Go back to your socket !");
 });
 
+var io = require('socket.io').listen(httpServ, {
+   serveClient: false,
+   transports: ['websocket'],
+   pingTimeout: 2 * MIN,
+   pingInterval: 40 * 1000
+});
+//
+httpServ.listen(8080);
+
+var clientsMessegesCounts = {}
 var messageToClients = (function (){
    var _notifyFunction = null;
    return {
@@ -23,8 +35,8 @@ var messageToClients = (function (){
       setNotifyFunction: (func) => { _notifyFunction = func; }
    };
 }());
-var clientsMessegesCounts = {}
-function testMessages (a){
+
+function testMessageRange(a) {
 	var known = [];
 	var lastKnown = 0;
 	for (var i = 1; i < a.length; i++){
@@ -38,21 +50,33 @@ function testMessages (a){
 
 	return known
 }
-setInterval(function () {
-   var diffs = Object.keys(clientsMessegesCounts).forEach((clientID) => {
-      console.log(clientID, testMessages(clientsMessegesCounts[clientID]));
-   });
-}, 1000 * 10);
 
-var connectionCount = 0;
+function testClientsRecivedMessages(){
+   var now = new Date().getTime();
+   var printInterval = 1 * SEC
+
+   testClientsRecivedMessages._lastPrint = testClientsRecivedMessages._lastPrint || (now - printInterval)
+   if (now < testClientsRecivedMessages._lastPrint + printInterval) {
+      return;
+   }
+   console.log(Object.keys(clientsMessegesCounts).map((clientID) => {
+      return clientID + ": " + JSON.stringify(testMessageRange(clientsMessegesCounts[clientID]));
+   }).join('\t'));
+
+   testClientsRecivedMessages._lastPrint = now;
+}
+
 io.on('connection', function (socket) {
-    console.log('connection');
-    connectionCount++;
+   console.log("connection");
+
     socket.on('register', function (message, ackFunction) {
       clientsMessegesCounts[message.clientID] = clientsMessegesCounts[message.clientID] || [];
       ackFunction && ackFunction();
    });
     socket.on('client_message', function (message, ackFunction) {
+      if (message.clientID == 1)  {
+         testClientsRecivedMessages()
+      }
       clientsMessegesCounts[message.clientID] = clientsMessegesCounts[message.clientID] || [];
       clientsMessegesCounts[message.clientID].push(message.messageCounter);
       ackFunction && ackFunction(message.messageCounter);
