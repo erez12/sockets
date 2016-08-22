@@ -8,6 +8,7 @@ const SOCKET_SERVER_CONFIG = {
    pingTimeout: 2 * MIN,
    pingInterval: 40 * 1000,
    perMessageDeflate: false,
+   transports: ['websocket']
 };
 
 const SOCKET_CLIENT_CONFIG = {

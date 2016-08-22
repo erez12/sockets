@@ -10,7 +10,7 @@ var httpServ = require('http').createServer((req, res) => {
    res.end("What are you doing here ? Go back to your socket !");
 });
 
-var io = require('socket.io').listen(httpServ, require('./config.js')().socket_io);
+var io = require('socket.io').listen(httpServ, require('./config.js')().socketIOServer);
 httpServ.listen(8080);
 
 var clientsMessegesCounts = {}

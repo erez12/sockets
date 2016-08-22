@@ -4,7 +4,7 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 const SEC = 1000;
 const MIN = 60 * SEC;
 const io = require('socket.io-client');
-const serverUrl = 'http://54.152.194.77:35357'
+const serverUrl = 'http://16.54.182.164:8080'
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
@@ -28,7 +28,6 @@ function createSocket(clientID){
       clientID: clientID
    };
    socket.on('connect', function(){
-      socket.__me
       if (socket.__meta.reconnectCounter > 0){
          console.log('after-reconnect');
          return
