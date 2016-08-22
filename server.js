@@ -10,13 +10,7 @@ var httpServ = require('http').createServer((req, res) => {
    res.end("What are you doing here ? Go back to your socket !");
 });
 
-var io = require('socket.io').listen(httpServ, {
-   serveClient: false,
-   transports: ['websocket'],
-   pingTimeout: 2 * MIN,
-   pingInterval: 40 * 1000
-});
-//
+var io = require('socket.io').listen(httpServ, require('./config.js')().socket_io);
 httpServ.listen(8080);
 
 var clientsMessegesCounts = {}
@@ -74,6 +68,7 @@ io.on('connection', function (socket) {
       ackFunction && ackFunction();
    });
     socket.on('client_message', function (message, ackFunction) {
+      console.log(socket.id);
       if (message.clientID == 1)  {
          testClientsRecivedMessages()
       }

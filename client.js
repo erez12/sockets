@@ -4,7 +4,7 @@ require('console-stamp')(console, '[HH:MM:ss.l]');
 const SEC = 1000;
 const MIN = 60 * SEC;
 const io = require('socket.io-client');
-const serverUrl = 'http://127.0.0.1:8080'
+const serverUrl = 'http://54.152.194.77:35357'
 let messageCounter = 1;
 let sendMessage = (socket, topic, content, ack) => socket.emit(topic, content, ack);
 
@@ -20,13 +20,7 @@ function onFirstConnect(socket) {
 var serverMessageCount = [];
 setInterval(() => { console.log(JSON.stringify(serverMessageCount)); }, 1000 * 10);
 function createSocket(clientID){
-   let socket = io(serverUrl, {
-      forceNew: true,
-      reconnectionAttempts: 5,
-      // reconnection: false,
-      // reconnectionAttempts: 0
-      transports: ['websocket']
-   });
+   let socket = io(serverUrl, require('./config.js')().socketIOclient);
 
    socket.__meta = {
       reconnectCounter: 0,
@@ -68,6 +62,7 @@ function createSocket(clientID){
    socket.on('reconnect_failed', function(i){
        console.log('reconnect_failed', socket.__meta);
    });
+   socket.on('connect_error', (e)=> {console.errore()});
 
    return
 }
